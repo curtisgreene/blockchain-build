@@ -7,15 +7,25 @@ class Block{
     this.timestamp = timestamp;
     this.data = data;
     this.hash = this.calculateHash();
+    this.nonce = 0;
   }
   calculateHash(){
-    return SHA256(this.index + this.previousHash + this.timestamp + JSON.stringify(this.data)).toString();
+    return SHA256(this.index + this.previousHash + this.timestamp + JSON.stringify(this.data) + this.nonce).toString();
+  }
+
+  mineBlock(difficulty){
+    while(this.hash.substring(0, difficulty) !== Array(difficulty + 1).join("0")){
+      this.nonce++;
+      this.hash = this.calculateHash();
+    }
+    console.log("Block mined: " + this.hash);
   }
 }
 
 class Blockchain{
   constructor(){
     this.chain = [this.createGenesisBlock()];
+    this.difficulty = 4;
   }
 
   createGenesisBlock(){
@@ -28,7 +38,7 @@ class Blockchain{
 
   addBlock(newBlock){
     newBlock.previousHash = this.getLatestBlock().hash;
-    newBlock.hash = newBlock.calculateHash();
+    newBlock.mineBlock(this.difficulty);
     this.chain.push(newBlock);
   }
 
@@ -48,9 +58,7 @@ class Blockchain{
 }
 
 let navcoin = new Blockchain();
+console.log("Mining new coin 1...");
 navcoin.addBlock( new Block(1, '3/23/2018', { amount: 10}));
+console.log("Mining new coin 2...");
 navcoin.addBlock( new Block(2, '3/24/2018', { amount: 100}));
-// console.log(JSON.stringify(navcoin, null, 4))
-console.log("Is chain valid? " + navcoin.isChainValid());
-navcoin.chain[1].data = "Hella shit coins";
-console.log("Is chain valid? " + navcoin.isChainValid());
